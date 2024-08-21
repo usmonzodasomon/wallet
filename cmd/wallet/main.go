@@ -8,6 +8,7 @@ import (
 	"github/usmonzodasomon/wallet/internal/config"
 	"github/usmonzodasomon/wallet/internal/routes"
 	"github/usmonzodasomon/wallet/pkg/logger"
+	"github/usmonzodasomon/wallet/pkg/postgres"
 	"github/usmonzodasomon/wallet/pkg/server"
 	"log"
 	"log/slog"
@@ -27,8 +28,22 @@ func main() {
 
 	logger.Debug("debug messages are enabled")
 
+	connection, err := postgres.GetConnection(postgres.Config{
+		Host:     cfg.Database.PostgresHost,
+		Port:     cfg.Database.PostgresPort,
+		User:     cfg.Database.PostgresUser,
+		Password: cfg.Database.PostgresPassword,
+		Database: cfg.Database.PostgresDatabase,
+	})
+	if err != nil {
+		logger.Error("Failed to connect to database: ", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
+	defer postgres.CloseConnection(connection)
+	logger.Info("connected to database")
+
 	r := chi.NewRouter()
-	routes.SetUpRoutes(r, nil)
+	routes.SetUpRoutes(r, connection)
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	logger.Info("starting server", slog.String("address", cfg.Address))
