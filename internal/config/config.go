@@ -12,6 +12,7 @@ type Config struct {
 	Env        string `yaml:"env" env-default:"local"`
 	HTTPServer `yaml:"http_server"`
 	Database
+	SecretKey string `env:"SECRET_KEY"`
 }
 
 type HTTPServer struct {
@@ -28,6 +29,8 @@ type Database struct {
 	PostgresDatabase string `env:"POSTGRES_DATABASE" env-default:"postgres"`
 }
 
+var Cfg Config
+
 func MustLoad() *Config {
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("cannot load env: %s", err)
@@ -37,11 +40,9 @@ func MustLoad() *Config {
 		log.Fatal("CONFIG_PATH is not set")
 	}
 
-	var cfg Config
-
-	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
+	if err := cleanenv.ReadConfig(configPath, &Cfg); err != nil {
 		log.Fatalf("cannot read config: %s", err)
 	}
 
-	return &cfg
+	return &Cfg
 }

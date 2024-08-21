@@ -11,6 +11,13 @@ import (
 func walletRoutes(r *chi.Mux, db *sqlx.DB) {
 	walletRepo := repository.NewWalletRepo(db)
 	walletService := service.NewWalletService(walletRepo)
-	_ = controllers.NewWalletController(walletService)
+	walletControllers := controllers.NewWalletController(walletService)
+	_ = walletControllers
 
+	r.Route("/api/v1/wallets", func(r chi.Router) {
+		r.Post("/exists", nil)
+		r.Post("/deposit", nil)
+		r.Post("/total-deposits", nil)
+		r.Post("/balance", nil)
+	})
 }
