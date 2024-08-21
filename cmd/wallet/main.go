@@ -3,10 +3,14 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/go-chi/chi/v5"
+	"github/usmonzodasomon/wallet/internal/config"
 	"github/usmonzodasomon/wallet/internal/routes"
+	"github/usmonzodasomon/wallet/pkg/logger"
 	"github/usmonzodasomon/wallet/pkg/server"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -15,24 +19,42 @@ import (
 )
 
 func main() {
+	cfg := config.MustLoad()
+	logger := logger.Logger(cfg.Env)
+
+	logger.Info("starting url-shortener",
+		slog.String("env", cfg.Env))
+
+	logger.Debug("debug messages are enabled")
+
 	r := chi.NewRouter()
 	routes.SetUpRoutes(r, nil)
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	logger.Info("starting server", slog.String("address", cfg.Address))
+
 	srv := server.Server{}
 	go func() {
-		if err := srv.Run(server.Config{}, r); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err := srv.Run(server.Config{
+			Address:      cfg.HTTPServer.Address,
+			ReadTimeout:  cfg.HTTPServer.Timeout,
+			WriteTimeout: cfg.HTTPServer.Timeout,
+			IdleTimeout:  cfg.HTTPServer.IdleTimeout,
+		}, r); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Println("failed to start server")
 		}
 	}()
+
+	logger.Info(fmt.Sprintf("server started on %s", cfg.Address))
 	<-done
-	log.Println("stopping server")
+	logger.Info("stopping server")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Println(err.Error())
+		logger.Error("failed to stop server", slog.String("error", err.Error()))
 		return
 	}
+	logger.Info("server stopped")
 }
