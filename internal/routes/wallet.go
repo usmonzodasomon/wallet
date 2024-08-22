@@ -16,7 +16,7 @@ func walletRoutes(r *chi.Mux, db *sqlx.DB) {
 	r.Route("/api/v1/wallets", func(r chi.Router) {
 		r.Post("/exists", walletControllers.Exists)
 		r.Post("/deposit", walletControllers.AddBalance)
-		r.Post("/total-deposits", nil)
+		r.Post("/total-deposits", walletControllers.TotalDeposits)
 		r.Post("/balance", walletControllers.GetBalance)
 	})
 }

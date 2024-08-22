@@ -49,3 +49,8 @@ func (r AddBalanceReq) AmountInt() (int64, error) {
 	}
 	return somoni*100 + diram, nil
 }
+
+type TotalDeposits struct {
+	TotalCount int64 `db:"total_count"`
+	TotalSum   int64 `db:"total_sum"`
+}

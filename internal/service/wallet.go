@@ -7,6 +7,7 @@ type WalletRepositoryI interface {
 	GetBalance(userID string) (int64, error)
 	AddBalance(walletID int64, amount int64) error
 	GetWalletID(userID string) (int64, error)
+	TotalDeposits(walletID int64) (int64, int64, error)
 }
 
 type WalletService struct {
@@ -59,4 +60,25 @@ func (s *WalletService) AddBalance(userID string, amount int64) error {
 	}
 
 	return nil
+}
+
+func (s *WalletService) TotalDeposits(userID string) (int64, float64, error) {
+	exists, err := s.Exists(userID)
+	if err != nil {
+		return 0, 0, err
+	}
+	if !exists {
+		return 0, 0, models.ErrWalletNotFound
+	}
+
+	walletID, err := s.repo.GetWalletID(userID)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	totalCount, totalSum, err := s.repo.TotalDeposits(walletID)
+	if err != nil {
+		return 0, 0, err
+	}
+	return totalCount, float64(totalSum) / 100, nil
 }

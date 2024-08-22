@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/jmoiron/sqlx"
+	"github/usmonzodasomon/wallet/internal/models"
 )
 
 type WalletRepo struct {
@@ -61,4 +62,23 @@ func (r *WalletRepo) GetWalletID(userID string) (int64, error) {
 		return 0, err
 	}
 	return id, nil
+}
+
+func (r *WalletRepo) TotalDeposits(walletID int64) (int64, int64, error) {
+	q := `SELECT
+    COUNT(*) AS total_count,
+    SUM(amount) AS total_sum
+FROM
+    transactions
+WHERE
+    DATE_TRUNC('month', time) = DATE_TRUNC('month', CURRENT_DATE)
+AND wallet_id=$1;
+`
+
+	var total models.TotalDeposits
+	err := r.db.Get(&total, q, walletID)
+	if err != nil {
+		return 0, 0, err
+	}
+	return total.TotalCount, total.TotalSum, nil
 }

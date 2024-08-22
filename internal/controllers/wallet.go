@@ -11,6 +11,7 @@ type WalletServiceI interface {
 	Exists(userID string) (bool, error)
 	GetBalance(userID string) (float64, error)
 	AddBalance(userID string, amount int64) error
+	TotalDeposits(userID string) (int64, float64, error)
 }
 
 type WalletController struct {
@@ -76,4 +77,16 @@ func (c *WalletController) AddBalance(w http.ResponseWriter, r *http.Request) {
 	}
 
 	Success(w, r, http.StatusOK, map[string]string{"message": "balance added"})
+}
+
+func (c *WalletController) TotalDeposits(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(XUserId).(string)
+
+	totalCount, totalSum, err := c.service.TotalDeposits(userID)
+	if err != nil {
+		Error(w, r, http.StatusInternalServerError, "internal server error")
+		return
+	}
+
+	Success(w, r, http.StatusOK, map[string]interface{}{"total_count": totalCount, "total_sum": totalSum})
 }
