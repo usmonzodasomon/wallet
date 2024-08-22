@@ -53,9 +53,9 @@ func (s *WalletService) AddBalance(userID string, amount int64) error {
 
 	var MaxBalance int64
 	if !wallet.IsIdentified {
-		MaxBalance = MaxBalanceUnidentified * 100
+		MaxBalance = MaxBalanceUnidentified
 	} else {
-		MaxBalance = MaxBalanceIdentified * 100
+		MaxBalance = MaxBalanceIdentified
 	}
 
 	if wallet.Balance+amount > MaxBalance {
