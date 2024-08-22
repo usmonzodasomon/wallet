@@ -15,17 +15,6 @@ func NewWalletRepo(db *sqlx.DB) *WalletRepo {
 	return &WalletRepo{db: db}
 }
 
-//
-//func (r *WalletRepo) Exists(userID string) (bool, error) {
-//	q := `SELECT EXISTS (SELECT 1 FROM wallets WHERE user_id=$1)`
-//	var exists bool
-//	err := r.db.Get(&exists, q, userID)
-//	if err != nil {
-//		return false, err
-//	}
-//	return exists, nil
-//}
-
 func (r *WalletRepo) GetBalance(userID string) (int64, error) {
 	q := `SELECT balance FROM wallets WHERE user_id=$1`
 	var balance int64
@@ -57,17 +46,17 @@ func (r *WalletRepo) AddBalance(walletID int64, amount int64) error {
 	return tx.Commit()
 }
 
-func (r *WalletRepo) GetWalletID(userID string) (int64, error) {
-	q := `SELECT id FROM wallets WHERE user_id=$1`
-	var id int64
-	err := r.db.Get(&id, q, userID)
+func (r *WalletRepo) GetWallet(userID string) (models.Wallet, error) {
+	q := `SELECT id, balance, user_id, is_identified FROM wallets WHERE user_id=$1`
+	var wallet models.Wallet
+	err := r.db.Get(&wallet, q, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return 0, models.ErrWalletNotFound
+			return models.Wallet{}, models.ErrWalletNotFound
 		}
-		return 0, err
+		return models.Wallet{}, err
 	}
-	return id, nil
+	return wallet, nil
 }
 
 func (r *WalletRepo) TotalDeposits(walletID int64) (int64, int64, error) {

@@ -108,6 +108,10 @@ func (c *WalletController) AddBalance(w http.ResponseWriter, r *http.Request) {
 			log.Warn("wallet not found")
 			Error(w, r, http.StatusNotFound, "wallet not found")
 			return
+		} else if errors.Is(err, models.ErrMaxBalanceExceeded) {
+			log.Warn("max balance exceeded")
+			Error(w, r, http.StatusBadRequest, "max balance exceeded")
+			return
 		}
 		log.Error("internal server error", slog.String("error", err.Error()))
 		Error(w, r, http.StatusInternalServerError, "internal server error")

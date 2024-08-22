@@ -7,14 +7,16 @@ import (
 )
 
 var (
-	ErrWalletNotFound = errors.New("wallet not found")
-	ErrInvalidAmount  = errors.New("invalid amount")
+	ErrWalletNotFound     = errors.New("wallet not found")
+	ErrInvalidAmount      = errors.New("invalid amount")
+	ErrMaxBalanceExceeded = errors.New("max balance exceeded")
 )
 
 type Wallet struct {
-	ID      uint64
-	Balance int64
-	UserID  string
+	ID           int64  `db:"id"`
+	Balance      int64  `db:"balance"`
+	UserID       string `db:"user_id"`
+	IsIdentified bool   `db:"is_identified"`
 }
 
 type AddBalanceReq struct {
