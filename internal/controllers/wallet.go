@@ -24,13 +24,13 @@ func NewWalletController(service WalletServiceI) *WalletController {
 
 func (c *WalletController) Exists(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(XUserId).(string)
-	exists, err := c.service.Exists(userID)
+	_, err := c.service.Exists(userID)
 	if err != nil {
+		if errors.Is(err, models.ErrWalletNotFound) {
+			Error(w, r, http.StatusNotFound, "wallet not found")
+			return
+		}
 		Error(w, r, http.StatusInternalServerError, "internal server error")
-		return
-	}
-	if !exists {
-		Error(w, r, http.StatusNotFound, "wallet not found")
 		return
 	}
 	Success(w, r, http.StatusOK, map[string]string{"message": "wallet exists"})
@@ -72,6 +72,10 @@ func (c *WalletController) AddBalance(w http.ResponseWriter, r *http.Request) {
 
 	err = c.service.AddBalance(userID, amount)
 	if err != nil {
+		if errors.Is(err, models.ErrWalletNotFound) {
+			Error(w, r, http.StatusNotFound, "wallet not found")
+			return
+		}
 		Error(w, r, http.StatusInternalServerError, "internal server error")
 		return
 	}
@@ -84,6 +88,10 @@ func (c *WalletController) TotalDeposits(w http.ResponseWriter, r *http.Request)
 
 	totalCount, totalSum, err := c.service.TotalDeposits(userID)
 	if err != nil {
+		if errors.Is(err, models.ErrWalletNotFound) {
+			Error(w, r, http.StatusNotFound, "wallet not found")
+			return
+		}
 		Error(w, r, http.StatusInternalServerError, "internal server error")
 		return
 	}

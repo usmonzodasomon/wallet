@@ -1,9 +1,6 @@
 package service
 
-import "github/usmonzodasomon/wallet/internal/models"
-
 type WalletRepositoryI interface {
-	Exists(userID string) (bool, error)
 	GetBalance(userID string) (int64, error)
 	AddBalance(walletID int64, amount int64) error
 	GetWalletID(userID string) (int64, error)
@@ -19,16 +16,17 @@ func NewWalletService(repo WalletRepositoryI) *WalletService {
 }
 
 func (s *WalletService) Exists(userID string) (bool, error) {
-	return s.repo.Exists(userID)
+	_, err := s.repo.GetWalletID(userID)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (s *WalletService) GetBalance(userID string) (float64, error) {
-	exists, err := s.Exists(userID)
+	_, err := s.Exists(userID)
 	if err != nil {
 		return 0, err
-	}
-	if !exists {
-		return 0, models.ErrWalletNotFound
 	}
 
 	balanceInt, err := s.repo.GetBalance(userID)
@@ -41,14 +39,6 @@ func (s *WalletService) GetBalance(userID string) (float64, error) {
 }
 
 func (s *WalletService) AddBalance(userID string, amount int64) error {
-	exists, err := s.Exists(userID)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		return models.ErrWalletNotFound
-	}
-
 	walletID, err := s.repo.GetWalletID(userID)
 	if err != nil {
 		return err
@@ -63,14 +53,6 @@ func (s *WalletService) AddBalance(userID string, amount int64) error {
 }
 
 func (s *WalletService) TotalDeposits(userID string) (int64, float64, error) {
-	exists, err := s.Exists(userID)
-	if err != nil {
-		return 0, 0, err
-	}
-	if !exists {
-		return 0, 0, models.ErrWalletNotFound
-	}
-
 	walletID, err := s.repo.GetWalletID(userID)
 	if err != nil {
 		return 0, 0, err
