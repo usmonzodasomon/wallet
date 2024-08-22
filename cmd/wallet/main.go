@@ -10,7 +10,6 @@ import (
 	"github/usmonzodasomon/wallet/pkg/logger"
 	"github/usmonzodasomon/wallet/pkg/postgres"
 	"github/usmonzodasomon/wallet/pkg/server"
-	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -56,7 +55,7 @@ func main() {
 			WriteTimeout: cfg.HTTPServer.Timeout,
 			IdleTimeout:  cfg.HTTPServer.IdleTimeout,
 		}, r); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Println("failed to start server")
+			logger.Error("error occurred while running http server", slog.String("error", err.Error()))
 		}
 	}()
 

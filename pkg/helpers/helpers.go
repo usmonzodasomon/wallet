@@ -9,5 +9,6 @@ import (
 func ToSha1(text, key string) string {
 	h := hmac.New(sha1.New, []byte(key))
 	h.Write([]byte(text))
-	hex.EncodeToString(h.Sum(nil))
+
+	return hex.EncodeToString(h.Sum(nil))
 }
