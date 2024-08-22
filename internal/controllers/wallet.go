@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -18,21 +17,15 @@ func NewWalletController(service WalletServiceI) *WalletController {
 }
 
 func (c *WalletController) Exists(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value("X-UserId").(string)
+	userID := r.Context().Value(XUserId).(string)
 	exists, err := c.service.Exists(userID)
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "internal server error"})
+		Error(w, r, http.StatusInternalServerError, "internal server error")
 		return
 	}
 	if !exists {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(map[string]string{"error": "wallet not found"})
+		Error(w, r, http.StatusNotFound, "wallet not found")
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"message": "wallet exists"})
+	Success(w, r, http.StatusOK, map[string]string{"message": "wallet exists"})
 }

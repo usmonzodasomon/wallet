@@ -10,9 +10,14 @@ import (
 	"strings"
 )
 
+const (
+	XUserId = "X-UserId"
+	XDigest = "X-Digest"
+)
+
 func CheckHashMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userID := r.Header.Get("X-UserId")
+		userID := r.Header.Get(XUserId)
 		if userID == "" {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
@@ -30,7 +35,7 @@ func CheckHashMiddleware(next http.Handler) http.Handler {
 
 		r.Body = io.NopCloser(strings.NewReader(string(body)))
 
-		hash := r.Header.Get("X-Digest")
+		hash := r.Header.Get(XDigest)
 		if hash != helpers.ToSha1(string(body), config.Cfg.SecretKey) {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
@@ -38,7 +43,7 @@ func CheckHashMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "X-UserId", userID)
+		ctx := context.WithValue(r.Context(), XUserId, userID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
