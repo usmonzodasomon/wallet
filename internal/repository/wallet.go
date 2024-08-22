@@ -31,3 +31,34 @@ func (r *WalletRepo) GetBalance(userID string) (int64, error) {
 	}
 	return balance, nil
 }
+
+func (r *WalletRepo) AddBalance(walletID int64, amount int64) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return err
+	}
+
+	q := `UPDATE wallets SET balance = balance + $1 WHERE id=$2`
+	_, err = tx.Exec(q, amount, walletID)
+	if err != nil {
+		return tx.Rollback()
+	}
+
+	q = `INSERT INTO transactions (wallet_id, amount) VALUES ($1, $2)`
+	_, err = tx.Exec(q, walletID, amount)
+	if err != nil {
+		return tx.Rollback()
+	}
+
+	return tx.Commit()
+}
+
+func (r *WalletRepo) GetWalletID(userID string) (int64, error) {
+	q := `SELECT id FROM wallets WHERE user_id=$1`
+	var id int64
+	err := r.db.Get(&id, q, userID)
+	if err != nil {
+		return 0, err
+	}
+	return id, nil
+}
